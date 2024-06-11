@@ -6,7 +6,7 @@ import android.util.AttributeSet
 
 class MyGLSurfaceView(context: Context, attrs: AttributeSet?) : GLSurfaceView(context, attrs) {
 
-    private val renderer: MyGLRenderer
+    val renderer: MyGLRenderer
 
     init {
         // Create an OpenGL ES 2.0 context

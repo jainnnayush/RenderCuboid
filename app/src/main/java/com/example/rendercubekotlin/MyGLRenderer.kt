@@ -8,7 +8,7 @@ import javax.microedition.khronos.opengles.GL10
 
 class MyGLRenderer : GLSurfaceView.Renderer {
 
-    private lateinit var cube: Cube
+    private lateinit var cuboid: Cuboid
 
     // vPMatrix is an abbreviation for "Model View Projection Matrix"
     private val vPMatrix = FloatArray(16)
@@ -16,15 +16,20 @@ class MyGLRenderer : GLSurfaceView.Renderer {
     private val viewMatrix = FloatArray(16)
     private val rotationMatrix = FloatArray(16)
 
-    var angle: Float = 20f
+    var roll: Float = 0f
+    var pitch: Float = 0f
+    var yaw: Float = 0f
 
     override fun onSurfaceCreated(unused: GL10, config: EGLConfig) {
         // Set the background frame color
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
 
+        // Initialize a cuboid
+        cuboid = Cuboid()
+        GLES20.glDisable(GLES20.GL_CULL_FACE)
         GLES20.glEnable(GLES20.GL_DEPTH_TEST)
-        // Initialize a cube
-        cube = Cube()
+        GLES20.glDisable(GLES20.GL_BLEND)
+
     }
 
     override fun onDrawFrame(unused: GL10) {
@@ -37,17 +42,19 @@ class MyGLRenderer : GLSurfaceView.Renderer {
         // Calculate the projection and view transformation
         Matrix.multiplyMM(vPMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
 
-        // Create a rotation for the cube
+        // Create a rotation for the cuboid
         val scratch = FloatArray(16)
 
-        // Rotate the cube
-        Matrix.setRotateM(rotationMatrix, 0, angle, 0f, 1.0f, 0f)
+        // Rotate the cuboid
+        Matrix.setRotateM(rotationMatrix, 0, -roll, 1.0f, 0.0f, 0.0f)
+        Matrix.rotateM(rotationMatrix, 0, yaw, 0.0f, 1.0f, 0.0f)
+        Matrix.rotateM(rotationMatrix, 0, pitch, 0.0f, 0.0f, 1.0f)
 
         // Combine the rotation matrix with the projection and camera view
         Matrix.multiplyMM(scratch, 0, vPMatrix, 0, rotationMatrix, 0)
 
         // Draw shape
-        cube.draw(scratch)
+        cuboid.draw(scratch)
     }
 
     override fun onSurfaceChanged(unused: GL10, width: Int, height: Int) {
@@ -56,6 +63,12 @@ class MyGLRenderer : GLSurfaceView.Renderer {
         val ratio: Float = width.toFloat() / height.toFloat()
 
         // This projection matrix is applied to object coordinates in the onDrawFrame() method
-        Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1f, 1f, 3f, 7f)
+        Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -2f, 2f, 2f, 10f)
+    }
+
+    fun updateRotation(roll: Float, pitch: Float, yaw: Float) {
+        this.roll = roll
+        this.pitch = pitch
+        this.yaw = yaw
     }
 }
